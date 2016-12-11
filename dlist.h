@@ -3,13 +3,15 @@
 
 typedef struct Dlist_Link {
 	struct Dlist_Link *next;
-	void *data;
+	//void *data;
+	char *data;
 	unsigned int storage_pos;
 } dlist_link;
 
 typedef struct Dlist_List{
-	dlist_link *top;
-	unsigned int *avail_arr;
+	dlist_link top;
+	dlist_link **inv;
+	unsigned int **avail_arr;
 	unsigned int avail_link;
 	unsigned int init_links;
 	unsigned int alloc_links;
