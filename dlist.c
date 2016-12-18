@@ -4,11 +4,6 @@
 #include "dlist.h"
 #include "prealloc.h"
 
-#ifdef DLIST_DEBUG
-#include <stdio.h>
-#endif
-
-
 
 
 dlist_list *dlist_init(unsigned int init_links, void *free_func) {
@@ -54,7 +49,7 @@ void *dlist_get(dlist_link *pos_link) {
 }
 
 
-dlist_link *dlist_nxt(dlist_link *pos_link) {
+dlist_link *dlist_next(dlist_link *pos_link) {
 
 	return pos_link->next;
 }
@@ -65,7 +60,7 @@ void dlist_destroy(dlist_list *list) {
 
 	if ( list->free_func != NULL ) {
 		for (dlist_link *link = dlist_top(list); !dlist_end(link);
-				link = dlist_nxt(link))
+				link = dlist_next(link))
 			list->free_func(link->next->data);
 
 	}
@@ -91,23 +86,4 @@ int dlist_exist(dlist_link *pos_link) {
 
 	return(pos_link != NULL);
 }
-
-#ifdef DLIST_DEBUG
-void dlist_debug(dlist_list *list) {
-	prealloc_cell p_cell;
-	unsigned int i,x,y;
-
-	printf("\nnum_cells: %d\n",list->p_head->num_cells);
-	printf("avail: [%d %d]\n",
-			list->p_head->avail_cell[1],list->p_head->avail_cell[0]);
-	for (i=0;i<list->p_head->alloc_cells;i++) {
-		x = i % list->p_head->init_cells;
-		y = i / list->p_head->init_cells;
-		p_cell = list->p_head->inv[y][x];
-		printf("[%d %d]: %s\tavail_next: [%d %d]\n", y, x,
-				((dlist_link *)p_cell.data)->data,
-				p_cell.next_avail[1],p_cell.next_avail[0]);
-	}
-}
-#endif
 

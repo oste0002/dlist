@@ -8,6 +8,8 @@
 
 #define STRING_LEN 20
 
+
+void dlist_debug(dlist_list *list);
 void print_menu();
 
 int main() {
@@ -44,7 +46,7 @@ int main() {
 
 				for (p=dlist_top(l),i=1;
 						(!dlist_end(p) && (j>i));
-						p=dlist_nxt(p),i++);
+						p=dlist_next(p),i++);
 
 				if (!dlist_end(p))
 					dlist_del(l,p);
@@ -54,7 +56,7 @@ int main() {
 			case '3' :
 				printf("\n");
 				i=1;
-				for (p=dlist_top(l);!dlist_end(p);p=dlist_nxt(p)) {
+				for (p=dlist_top(l);!dlist_end(p);p=dlist_next(p)) {
 					printf("%d: %s\n",i,(char *)dlist_get(p));
 					i++;
 				}
@@ -104,6 +106,22 @@ int main() {
 }
 
 
+void dlist_debug(dlist_list *list) {
+  prealloc_cell p_cell;
+  unsigned int i,x,y;
+
+  printf("\nnum_cells: %d\n",list->p_head->num_cells);
+  printf("avail: [%d %d]\n",
+      list->p_head->avail_cell[1],list->p_head->avail_cell[0]);
+  for (i=0;i<list->p_head->alloc_cells;i++) {
+    x = i % list->p_head->init_cells;
+    y = i / list->p_head->init_cells;
+    p_cell = list->p_head->inv[y][x];
+    printf("[%d %d]: %s\tavail_next: [%d %d]\n", y, x,
+        ((dlist_link *)p_cell.data)->data,
+        p_cell.next_avail[1],p_cell.next_avail[0]);
+  }
+}
 
 
 void print_menu() {

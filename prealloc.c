@@ -57,12 +57,12 @@ prealloc_cell *prealloc_new(prealloc_head *head) {
 		cell->place[0] = head->full_next[0];
 		cell->place[1] = head->full_next[1];
 		head->full_next[0]++;
-	}	else {
-		cell = &(head->inv[head->avail_cell[1]][head->avail_cell[0]]);
 
+	}	else {
+
+		cell = &(head->inv[head->avail_cell[1]][head->avail_cell[0]]);
 		cell->place[0] = head->avail_cell[0];
 		cell->place[1] = head->avail_cell[1];
-
 		head->avail_cell[0] =	cell->next_avail[0];
 		head->avail_cell[1] =	cell->next_avail[1];
 	}
