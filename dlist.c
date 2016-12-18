@@ -5,9 +5,7 @@
 #include "prealloc.h"
 
 #ifdef DLIST_DEBUG
-
 #include <stdio.h>
-
 #endif
 
 
@@ -96,9 +94,8 @@ int dlist_exist(dlist_link *pos_link) {
 
 #ifdef DLIST_DEBUG
 void dlist_debug(dlist_list *list) {
-	void *p_data;
+	prealloc_cell p_cell;
 	unsigned int i,x,y;
-	unsigned int **a = list->p_head->avail_arr;
 
 	printf("\nnum_cells: %d\n",list->p_head->num_cells);
 	printf("avail: [%d %d]\n",
@@ -106,9 +103,10 @@ void dlist_debug(dlist_list *list) {
 	for (i=0;i<list->p_head->alloc_cells;i++) {
 		x = i % list->p_head->init_cells;
 		y = i / list->p_head->init_cells;
-		p_data = list->p_head->inv[y][x].data;
+		p_cell = list->p_head->inv[y][x];
 		printf("[%d %d]: %s\tavail_next: [%d %d]\n", y, x,
-				((dlist_link *)p_data)->data, a[y][2*x+1], a[y][2*x]);
+				((dlist_link *)p_cell.data)->data,
+				p_cell.next_avail[1],p_cell.next_avail[0]);
 	}
 }
 #endif

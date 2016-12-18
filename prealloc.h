@@ -6,6 +6,7 @@
 
 typedef struct Alloc_Cell {
 	unsigned int place[2];
+	unsigned int next_avail[2];
 	bool is_used;
 	void *data;
 } prealloc_cell;
@@ -13,7 +14,6 @@ typedef struct Alloc_Cell {
 
 typedef struct Alloc_Head {
 	prealloc_cell **inv;
-	unsigned int **avail_arr;
 	void **data;
 	unsigned int full_next[2];
 	unsigned int avail_cell[2];
