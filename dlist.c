@@ -1,25 +1,24 @@
-#include <stdio.h>
 #include <string.h>
 #include <stdlib.h>
+#include <stdbool.h>
 #include "dlist.h"
+#include "prealloc.h"
+
+#ifdef DLIST_DEBUG
+
+#include <stdio.h>
+
+#endif
+
+
 
 
 dlist_list *dlist_init(unsigned int init_links, void *free_func) {
 
 	dlist_list *list = (dlist_list *)malloc(sizeof(dlist_list));
 
-	list->inv = (dlist_link **)calloc(1000, sizeof(dlist_link *));
-	list->inv[0] = (dlist_link *)calloc(init_links, sizeof(dlist_link));
-
-	list->avail_arr = (unsigned int **)calloc(1000,
-			sizeof(unsigned int *));
-	list->avail_arr[0] = (unsigned int *)calloc(init_links, sizeof(unsigned int));
-	list->avail_link = -1;
-
-	list->init_links = init_links;
-	list->alloc_links = init_links;
-	list->num_links = 0;
-
+	list->p_head =
+		prealloc_init(init_links, init_links * 1000U, sizeof(dlist_link));
 	list->top.next = NULL;
 
 	if ( free_func != NULL )
@@ -30,55 +29,24 @@ dlist_list *dlist_init(unsigned int init_links, void *free_func) {
 
 
 void dlist_ins(dlist_list *list, dlist_link *pos_link, void *data) {
-	if ( list->num_links == list->alloc_links )
-		dlist_realloc(list);
 
-	dlist_link *new_link;
-
-	if ( list->avail_link == -1U ) {
-		new_link = &(list->inv[list->num_links / list->init_links][list->num_links % list->init_links]);
-		new_link->storage_pos = list->num_links;
-	}	else {
-		new_link = &(list->inv[list->avail_link/list->init_links][list->avail_link % list->init_links]);
-		new_link->storage_pos = list->avail_link;
-		list->avail_link = list->avail_arr[list->avail_link / list->init_links][list->avail_link % list->init_links];
-	}
+	prealloc_cell *p_cell = prealloc_new(list->p_head);
+	dlist_link *new_link = prealloc_memget(p_cell);
+	new_link->p_cell = p_cell;
 
 	new_link->next = pos_link->next;
 	new_link->data = data;
 	pos_link->next = new_link;
-
-	list->num_links++;
-
-	printf("avail: %u \n", list->avail_link);
-	for (unsigned int i=0;i<list->alloc_links;i++) {
-		printf("%d: %u %s\n",i,
-				list->avail_arr[i / list->init_links][i % list->init_links],
-				(char *)(list->inv[i / list->init_links][i % list->init_links].data));
-	}
 }
 
 
 void dlist_del(dlist_list *list, dlist_link *pos_link) {
 
-	list->num_links--;
-
 	if ( list->free_func != NULL )
 		list->free_func(pos_link->next->data);
 
-	list->avail_arr[pos_link->next->storage_pos	/ list->init_links]
-		[pos_link->next->storage_pos % list->init_links]
-		= list->avail_link;
-	list->avail_link = pos_link->next->storage_pos;
-
+	prealloc_del(list->p_head, pos_link->next->p_cell);
 	pos_link->next = pos_link->next->next;
-
-	printf("avail: %u \n", list->avail_link);
-	for (unsigned int i=0;i<list->alloc_links;i++) {
-		printf("%d: %u %s\n",i,
-				list->avail_arr[i / list->init_links][i % list->init_links],
-				(char *)(list->inv[i / list->init_links][i % list->init_links].data));
-	}
 }
 
 
@@ -96,19 +64,16 @@ dlist_link *dlist_nxt(dlist_link *pos_link) {
 
 void dlist_destroy(dlist_list *list) {
 
-	for ( unsigned int i=1;i < (list->num_links / list->alloc_links);i++) {
 
-		if ( list->free_func != NULL ) {
-			for ( dlist_link *pos = list->inv[list->num_links % list->alloc_links];
-					dlist_exist(pos); pos = dlist_nxt(pos))
-				list->free_func(pos->next->data);
-		}
-		free(list->inv[list->num_links / list->alloc_links]);
-		free(list->avail_arr[list->num_links / list->alloc_links]);
+	if ( list->free_func != NULL ) {
+		for (dlist_link *link = dlist_top(list); !dlist_end(link);
+				link = dlist_nxt(link))
+			list->free_func(link->next->data);
+
 	}
-	free(list->inv);
-	free(list->avail_arr);
+	prealloc_destroy(list->p_head);
 	free(list);
+
 }
 
 
@@ -129,38 +94,22 @@ int dlist_exist(dlist_link *pos_link) {
 	return(pos_link != NULL);
 }
 
+#ifdef DLIST_DEBUG
+void dlist_debug(dlist_list *list) {
+	void *p_data;
+	unsigned int i,x,y;
+	unsigned int **a = list->p_head->avail_arr;
 
-void dlist_realloc(dlist_list *list) {
-
-	//for (unsigned int i=0;i<list->alloc_links+1;i++) {
-	//	printf("%d: %p -> %p\n",i,list->inv[i+1], list->inv[i].next);
-	//}	
-
-	//list->inv = realloc(list->inv,
-	//		(list->init_links + list->alloc_links + 1) * sizeof(dlist_link));
-	//list->avail_arr = realloc(list->avail_arr,
-	//		(list->init_links + list->alloc_links + 1) * sizeof(unsigned int));
-
-	list->inv[list->num_links / list->init_links]
-		= (dlist_link *)calloc(list->init_links, sizeof(dlist_link));
-
-	list->avail_arr[list->num_links / list->init_links]
-		= (unsigned int *)calloc(list->init_links, sizeof(unsigned int));
-
-	//list->inv[list->alloc_links-1].next = &(list->inv[list->alloc_links+1]);
-	//list->inv->next->next->next = &(list->inv[list->alloc_links+1]);
-	//printf("list->inv->next->next->next:   %p\n",&list->inv->next->next->next);
-	//list->inv[3].next = &list->inv[4];
-
-	list->alloc_links = list->init_links + list->alloc_links;
-
-	printf("list->alloc_links: %d\nlist->init_links: %d\n", list->alloc_links, list->init_links);
-	//for (unsigned int i=0;i<list->alloc_links+1;i++) {
-	//	printf("%d: %p -> %p\n",i,&(list->inv[i]), list->inv[i].next);
-	//}	
-
-
-	//list->avail_link = 0;
+	printf("\nnum_cells: %d\n",list->p_head->num_cells);
+	printf("avail: [%d %d]\n",
+			list->p_head->avail_cell[1],list->p_head->avail_cell[0]);
+	for (i=0;i<list->p_head->alloc_cells;i++) {
+		x = i % list->p_head->init_cells;
+		y = i / list->p_head->init_cells;
+		p_data = list->p_head->inv[y][x].data;
+		printf("[%d %d]: %s\tavail_next: [%d %d]\n", y, x,
+				((dlist_link *)p_data)->data, a[y][2*x+1], a[y][2*x]);
+	}
 }
-
+#endif
 

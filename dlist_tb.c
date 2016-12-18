@@ -58,6 +58,9 @@ int main() {
 					printf("%d: %s\n",i,(char *)dlist_get(p));
 					i++;
 				}
+#ifdef DLIST_DEBUG
+				dlist_debug(l);
+#endif
 				break;
 
 				/* Move to front */

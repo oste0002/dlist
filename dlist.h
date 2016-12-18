@@ -1,21 +1,17 @@
 #ifndef DLIST_H
 #define DLIST_H
 
+#include "prealloc.h"
+
 typedef struct Dlist_Link {
 	struct Dlist_Link *next;
-	//void *data;
 	char *data;
-	unsigned int storage_pos;
+	prealloc_cell *p_cell;
 } dlist_link;
 
 typedef struct Dlist_List{
 	dlist_link top;
-	dlist_link **inv;
-	unsigned int **avail_arr;
-	unsigned int avail_link;
-	unsigned int init_links;
-	unsigned int alloc_links;
-	unsigned int num_links;
+	prealloc_head *p_head;
 	void (*free_func)(void *data);
 } dlist_list;
 
@@ -40,7 +36,9 @@ int dlist_end(dlist_link *pos_link);
 
 int dlist_exist(dlist_link *pos_link);
 
-void dlist_realloc(dlist_list *list);
+#ifdef DLIST_DEBUG
+	void dlist_debug(dlist_list *list);
+#endif
 
 
 #endif
