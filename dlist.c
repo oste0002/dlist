@@ -7,16 +7,15 @@
 
 
 dlist_list *dlist_init(unsigned int init_links,
-		unsigned int max_links, void *free_func) {
+		unsigned int max_links, size_t data_size) {
 
 	dlist_list *list = (dlist_list *)malloc(sizeof(dlist_list));
 
-	list->p_head =
-		prealloc_init(init_links, max_links, sizeof(dlist_link));
+	list->p_head = prealloc_init(init_links, max_links,
+			sizeof(dlist_link)+data_size);
 	list->top.next = NULL;
 
-	if ( free_func != NULL )
-		list->free_func = free_func;
+	list->data_size = data_size;
 
 	return list;
 }
@@ -25,24 +24,25 @@ dlist_list *dlist_init(unsigned int init_links,
 int dlist_ins(dlist_list *list, dlist_link *pos_link, void *data) {
 
 	prealloc_cell *p_cell;
-	dlist_link *new_link;
+	dlist_link *link;
+	dlist_carrier *carrier;
 
 	if ( (p_cell = prealloc_new(list->p_head)) == NULL )
 		return(-1);
-	new_link = prealloc_memget(p_cell);
-	new_link->p_cell = p_cell;
+	carrier = (dlist_carrier *)prealloc_memget(p_cell);
+	link = &carrier->link;
+	link->data = &carrier->data;
+	memcpy(link->data,data,list->data_size);
+	link->p_cell = p_cell;
 
-	new_link->next = pos_link->next;
-	new_link->data = data;
-	pos_link->next = new_link;
+	link->next = pos_link->next;
+	//link->data = data;
+	pos_link->next = link;
 	return(0);
 }
 
 
 void dlist_del(dlist_list *list, dlist_link *pos_link) {
-
-	if ( list->free_func != NULL )
-		list->free_func(pos_link->next->data);
 
 	prealloc_del(list->p_head, pos_link->next->p_cell);
 	pos_link->next = pos_link->next->next;
@@ -63,13 +63,6 @@ dlist_link *dlist_next(dlist_link *pos_link) {
 
 void dlist_destroy(dlist_list *list) {
 
-
-	if ( list->free_func != NULL ) {
-		for (dlist_link *link = dlist_top(list); !dlist_end(link);
-				link = dlist_next(link))
-			list->free_func(link->next->data);
-
-	}
 	prealloc_destroy(list->p_head);
 	free(list);
 

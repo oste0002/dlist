@@ -3,23 +3,33 @@
 
 #include "prealloc.h"
 
-typedef struct Dlist_Link {
-	struct Dlist_Link *next;
-	char *data;
-	prealloc_cell *p_cell;
-} dlist_link;
+typedef struct Dlist_Carrier dlist_carrier;
+typedef struct Dlist_Link dlist_link;
+typedef struct Dlist_List dlist_list;
 
-typedef struct Dlist_List{
+
+
+struct Dlist_Link {
+	struct Dlist_Link *next;
+	prealloc_cell *p_cell;
+	void *data;
+};
+
+struct Dlist_Carrier {
+	dlist_link link;
+	void *data;
+};
+
+struct Dlist_List{
 	dlist_link top;
 	prealloc_head *p_head;
-	void (*free_func)(void *data);
-} dlist_list;
-
+	size_t data_size;
+};
 
 
 
 dlist_list *dlist_init(unsigned int init_links,
-		unsigned int max_links, void *free_func);
+		unsigned int max_links, size_t data_size);
 
 int dlist_ins(dlist_list *list, dlist_link *pos_link, void *data);
 

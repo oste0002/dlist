@@ -14,12 +14,12 @@ void print_menu();
 
 int main() {
 
-	dlist_list *l = dlist_init(4U, 12U, free);
-	dlist_link *p = NULL;
 	bool loop = true;
 	char c;
-	char *s;
+	char s[STRING_LEN];
 	int i, j;
+	dlist_list *l = dlist_init(4U, 12U, sizeof(s));
+	dlist_link *p = NULL;
 
 
 	print_menu();
@@ -31,12 +31,11 @@ int main() {
 			/* Insert */
 			case '1' :
 				printf("Insert: ");
-				s = (char *) malloc(sizeof(char)*STRING_LEN);
 				pgets(s, sizeof(char)*STRING_LEN);
 				printf("\n");
 				if ( dlist_ins(l, dlist_top(l), s) != 0 ) {
 					fprintf(stderr,"Could not insert into dlist\n");
-					_Exit(EXIT_FAILURE);
+					exit(EXIT_FAILURE);
 				}
 				break;
 
@@ -120,9 +119,9 @@ void dlist_debug(dlist_list *list) {
     x = i % list->p_head->init_cells;
     y = i / list->p_head->init_cells;
     p_cell = list->p_head->inv[y][x];
-    printf("[%d %d]: %s\tavail_next: [%d %d]\n", y, x,
-        ((dlist_link *)p_cell.data)->data,
-        p_cell.next_avail[1],p_cell.next_avail[0]);
+    printf("[%d %d]: %s\t", y, x, (char *)((dlist_link *)p_cell.data)->data);
+		printf("avail_next: [%d %d]\t",p_cell.next_avail[1],p_cell.next_avail[0]);
+		printf("addr: %p\n",((dlist_link *)p_cell.data)->data);
   }
 }
 
