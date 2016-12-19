@@ -14,7 +14,7 @@ void print_menu();
 
 int main() {
 
-	dlist_list *l = dlist_init(4U, free);
+	dlist_list *l = dlist_init(4U, 12U, free);
 	dlist_link *p = NULL;
 	bool loop = true;
 	char c;
@@ -34,7 +34,10 @@ int main() {
 				s = (char *) malloc(sizeof(char)*STRING_LEN);
 				pgets(s, sizeof(char)*STRING_LEN);
 				printf("\n");
-				dlist_ins(l, dlist_top(l), s);
+				if ( dlist_ins(l, dlist_top(l), s) != 0 ) {
+					fprintf(stderr,"Could not insert into dlist\n");
+					_Exit(EXIT_FAILURE);
+				}
 				break;
 
 				/* Remove */

@@ -19,6 +19,7 @@ typedef struct Alloc_Head {
 	unsigned int avail_cell[2];
 	unsigned int init_cells;
 	unsigned int alloc_cells;
+	unsigned int max_cells;
 	unsigned int num_cells;
 	size_t cell_size;
 } prealloc_head;
@@ -30,7 +31,7 @@ prealloc_head *prealloc_init(unsigned int alloc_size, unsigned int max_size,
 
 prealloc_cell *prealloc_new(prealloc_head *head);
 
-void prealloc_realloc(prealloc_head *head);
+int prealloc_realloc(prealloc_head *head);
 
 void *prealloc_memget(prealloc_cell *cell);
 

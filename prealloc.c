@@ -38,6 +38,7 @@ prealloc_head *prealloc_init(unsigned int init_cells,
 	head->avail_cell[0] = -1U;
 	head->init_cells = num_cells_x;
 	head->alloc_cells = num_cells_x;
+	head->max_cells = max_cells;
 	head->cell_size = cell_size;
 
 	return(head);
@@ -50,7 +51,8 @@ prealloc_cell *prealloc_new(prealloc_head *head) {
 
 	if ( head->avail_cell[0] == -1U) {
 		if (head->full_next[0] > head->init_cells -1) {
-			prealloc_realloc(head);
+			if (prealloc_realloc(head) != 0)
+				return(NULL);
 		}
 
 		cell = &(head->inv[head->full_next[1]][head->full_next[0]]);
@@ -91,9 +93,14 @@ void *prealloc_memget(prealloc_cell *cell) {
 	return(cell->data);
 }
 
-void prealloc_realloc(prealloc_head *head) {
+int prealloc_realloc(prealloc_head *head) {
 
 	typedef char cell_data[head->cell_size];
+
+	if (head->max_cells < head->alloc_cells + head->init_cells)
+		return(-1);
+
+
 	prealloc_cell *cell = {0};
 
 	head->full_next[0] = 0;
@@ -110,6 +117,7 @@ void prealloc_realloc(prealloc_head *head) {
 	}
 
 	head->alloc_cells = head->alloc_cells + head->init_cells;
+	return(0);
 }
 
 

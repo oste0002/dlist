@@ -6,12 +6,13 @@
 
 
 
-dlist_list *dlist_init(unsigned int init_links, void *free_func) {
+dlist_list *dlist_init(unsigned int init_links,
+		unsigned int max_links, void *free_func) {
 
 	dlist_list *list = (dlist_list *)malloc(sizeof(dlist_list));
 
 	list->p_head =
-		prealloc_init(init_links, init_links * 1000U, sizeof(dlist_link));
+		prealloc_init(init_links, max_links, sizeof(dlist_link));
 	list->top.next = NULL;
 
 	if ( free_func != NULL )
@@ -21,15 +22,20 @@ dlist_list *dlist_init(unsigned int init_links, void *free_func) {
 }
 
 
-void dlist_ins(dlist_list *list, dlist_link *pos_link, void *data) {
+int dlist_ins(dlist_list *list, dlist_link *pos_link, void *data) {
 
-	prealloc_cell *p_cell = prealloc_new(list->p_head);
-	dlist_link *new_link = prealloc_memget(p_cell);
+	prealloc_cell *p_cell;
+	dlist_link *new_link;
+
+	if ( (p_cell = prealloc_new(list->p_head)) == NULL )
+		return(-1);
+	new_link = prealloc_memget(p_cell);
 	new_link->p_cell = p_cell;
 
 	new_link->next = pos_link->next;
 	new_link->data = data;
 	pos_link->next = new_link;
+	return(0);
 }
 
 
