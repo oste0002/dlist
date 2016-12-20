@@ -36,7 +36,6 @@ int dlist_ins(dlist_list *list, dlist_link *pos_link, void *data) {
 	link->p_cell = p_cell;
 
 	link->next = pos_link->next;
-	//link->data = data;
 	pos_link->next = link;
 	return(0);
 }
@@ -46,6 +45,16 @@ void dlist_del(dlist_list *list, dlist_link *pos_link) {
 
 	prealloc_del(list->p_head, pos_link->next->p_cell);
 	pos_link->next = pos_link->next->next;
+}
+
+
+void dlist_mtf(dlist_list *list, dlist_link *pos_link) {
+
+	dlist_link *link = pos_link->next;
+
+	pos_link->next = pos_link->next->next;
+	link->next = list->top.next;
+	list->top.next = link;
 }
 
 

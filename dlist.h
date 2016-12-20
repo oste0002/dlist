@@ -35,6 +35,8 @@ int dlist_ins(dlist_list *list, dlist_link *pos_link, void *data);
 
 void dlist_del(dlist_list *list, dlist_link *pos_link);
 
+void dlist_mtf(dlist_list *list, dlist_link *pos_link);
+
 void *dlist_get(dlist_link *pos_link);
 
 dlist_link *dlist_next(dlist_link *pos_link);
@@ -46,6 +48,7 @@ dlist_link *dlist_top(dlist_list *list);
 int dlist_end(dlist_link *pos_link);
 
 int dlist_exist(dlist_link *pos_link);
+
 
 
 #endif

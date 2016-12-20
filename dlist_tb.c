@@ -68,21 +68,19 @@ int main() {
 				break;
 
 				/* Move to front */
-				/*
 			case '4' :
 				printf("Move to front: ");
 				while (pgetd(&j) != 0 || j <= 0)
 					printf("INVALID INPUT: Please try again\n");
 
-				for (p=dlist_first(l),i=1;
-						(j>i) && (!dlist_isEnd(p));
+				for (p=dlist_top(l),i=1;
+						(j>i) && (!dlist_end(p));
 						p=dlist_next(p),i++);
 
-				if (!dlist_isEnd(p))
-					dlist_moveToFront(l,p);
+				if (!dlist_end(p))
+					dlist_mtf(l,p);
 
 				break;
-				*/
 
 			case '5' :
 				printf("Insert a number larger than 0\n");
