@@ -21,7 +21,7 @@ dlist_list *dlist_init(unsigned int init_links,
 }
 
 
-int dlist_ins(dlist_list *list, dlist_link *pos_link, void *data) {
+int dlist_ins(dlist_list *list, void *data) {
 
 	prealloc_cell *p_cell;
 	dlist_link *link;
@@ -35,8 +35,8 @@ int dlist_ins(dlist_list *list, dlist_link *pos_link, void *data) {
 	memcpy(link->data,data,list->data_size);
 	link->p_cell = p_cell;
 
-	link->next = pos_link->next;
-	pos_link->next = link;
+	link->next = list->top.next;
+	list->top.next = link;
 	return(0);
 }
 
@@ -56,7 +56,6 @@ void dlist_mtf(dlist_list *list, dlist_link *pos_link) {
 	link->next = list->top.next;
 	list->top.next = link;
 }
-
 
 void *dlist_get(dlist_link *pos_link) {
 

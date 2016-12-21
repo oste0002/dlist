@@ -31,7 +31,7 @@ struct Dlist_List{
 dlist_list *dlist_init(unsigned int init_links,
 		unsigned int max_links, size_t data_size);
 
-int dlist_ins(dlist_list *list, dlist_link *pos_link, void *data);
+int dlist_ins(dlist_list *list, void *data);
 
 void dlist_del(dlist_list *list, dlist_link *pos_link);
 

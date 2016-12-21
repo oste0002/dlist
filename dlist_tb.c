@@ -33,7 +33,7 @@ int main() {
 				printf("Insert: ");
 				pgets(s, sizeof(char)*STRING_LEN);
 				printf("\n");
-				if ( dlist_ins(l, dlist_top(l), s) != 0 ) {
+				if ( dlist_ins(l, s) != 0 ) {
 					fprintf(stderr,"Could not insert into dlist\n");
 					exit(EXIT_FAILURE);
 				}
@@ -80,14 +80,6 @@ int main() {
 				if (!dlist_end(p))
 					dlist_mtf(l,p);
 
-				break;
-
-			case '5' :
-				printf("Insert a number larger than 0\n");
-				while (pgetd(&j) != 0 || j <= 0) {
-					printf("INVALID INPUT: Please try again\n");
-				}
-				printf("Perfect! : %d\n",j);
 				break;
 
 				/* Quit */
