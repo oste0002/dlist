@@ -1,6 +1,7 @@
 #ifndef DLIST_H
 #define DLIST_H
 
+#include <stdbool.h>
 #include "prealloc.h"
 
 typedef struct Dlist_Carrier dlist_carrier;
@@ -27,7 +28,6 @@ struct Dlist_List{
 };
 
 
-
 dlist_list *dlist_init(unsigned int init_links,
 		unsigned int max_links, size_t data_size);
 
@@ -49,7 +49,4 @@ int dlist_end(dlist_link *pos_link);
 
 int dlist_exist(dlist_link *pos_link);
 
-
-
 #endif
-

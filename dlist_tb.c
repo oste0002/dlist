@@ -9,8 +9,11 @@
 #define STRING_LEN 20
 
 
-void dlist_debug(dlist_list *list);
 void print_menu();
+
+#ifdef DLIST_DEBUG
+void dlist_debug(dlist_list *list);
+#endif
 
 int main() {
 
@@ -33,10 +36,9 @@ int main() {
 				printf("Insert: ");
 				pgets(s, sizeof(char)*STRING_LEN);
 				printf("\n");
-				if ( dlist_ins(l, s) != 0 ) {
+				if ( dlist_ins(l, s) == NULL ) {
 					fprintf(stderr,"Could not insert into dlist\n");
-					exit(EXIT_FAILURE);
-				}
+					exit(EXIT_FAILURE);	}
 				break;
 
 				/* Remove */
@@ -98,6 +100,7 @@ int main() {
 }
 
 
+#ifdef DLIST_DEBUG
 void dlist_debug(dlist_list *list) {
   prealloc_cell p_cell;
   unsigned int i,x,y;
@@ -114,6 +117,7 @@ void dlist_debug(dlist_list *list) {
 		printf("addr: %p\n",((dlist_link *)p_cell.data)->data);
   }
 }
+#endif
 
 
 void print_menu() {

@@ -3,6 +3,11 @@
 #include <stdlib.h>
 #include <errno.h>
 #include <stdio.h>
+
+#include <limits.h>
+#include <string.h>
+#include <unistd.h>
+
 #include "prealloc.h"
 
 
@@ -10,48 +15,45 @@ prealloc_head *prealloc_init(unsigned int init_cells,
 		unsigned int max_cells, size_t cell_size){
 
 	typedef char cell_data[cell_size];
+
 	prealloc_head *head = (prealloc_head *)calloc(1,sizeof(prealloc_head));
 	if (head == NULL) {
-		perror("prealloc");
-		exit(EXIT_FAILURE);
-	}
+		perror("prealloc, calloc");
+		exit(EXIT_FAILURE);	}
+
 	prealloc_cell *cell;
 
 	unsigned int num_cells_x = init_cells;
 	unsigned int num_cells_y;
+
 	if ( max_cells % init_cells == 0 )
 		num_cells_y = max_cells / init_cells;
 	else
 		num_cells_y = max_cells / init_cells + init_cells;
 
-	head->inv = (prealloc_cell **)calloc(num_cells_y,
-			sizeof(prealloc_cell *));
+	head->inv = (prealloc_cell **)calloc(num_cells_y,	sizeof(prealloc_cell *));
 	if (head->inv == NULL) {
-		perror("prealloc");
-		exit(EXIT_FAILURE);
-	}
-	head->inv[0] = (prealloc_cell *)calloc(num_cells_x,
-			sizeof(prealloc_cell));
+		perror("prealloc, calloc");
+		exit(EXIT_FAILURE);	}
+
+	head->inv[0] = (prealloc_cell *)calloc(num_cells_x,	sizeof(prealloc_cell));
 	if (head->inv[0] == NULL) {
-		perror("prealloc");
-		exit(EXIT_FAILURE);
-	}
+		perror("prealloc, calloc");
+		exit(EXIT_FAILURE);	}
 
 	head->data = (void **)calloc(num_cells_y, sizeof(cell_data *));
 	if (head->data == NULL) {
-		perror("prealloc");
-		exit(EXIT_FAILURE);
-	}
+		perror("prealloc, calloc");
+		exit(EXIT_FAILURE);	}
+
 	head->data[0] = (void *)calloc(num_cells_x, sizeof(cell_data));
 	if (head->data[0] == NULL) {
-		perror("prealloc");
-		exit(EXIT_FAILURE);
-	}
+		fprintf(stderr,"prealloc: Allocation failed!\n");
+		exit(EXIT_FAILURE);	}
 
 	for (unsigned int i=0;i<init_cells;i++) {
 		cell = &(head->inv[0][i]);
-		cell->data = &((cell_data **)head->data)[0][i];
-	}
+		cell->data = &((cell_data **)head->data)[0][i];	}
 
 	head->full_next[0] = 0;
 	head->full_next[1] = 0;
@@ -74,28 +76,25 @@ prealloc_cell *prealloc_new(prealloc_head *head) {
 	if ( head->avail_cell[0] == -1U) {
 		if (head->full_next[0] > head->init_cells -1) {
 			if (prealloc_realloc(head) != 0)
-				return(NULL);
-		}
-
+				return(NULL);	}
 		cell = &(head->inv[head->full_next[1]][head->full_next[0]]);
 		cell->place[0] = head->full_next[0];
 		cell->place[1] = head->full_next[1];
-		head->full_next[0]++;
+		head->full_next[0]++;	}
 
-	}	else {
-
+	else {
 		cell = &(head->inv[head->avail_cell[1]][head->avail_cell[0]]);
 		cell->place[0] = head->avail_cell[0];
 		cell->place[1] = head->avail_cell[1];
 		head->avail_cell[0] =	cell->next_avail[0];
-		head->avail_cell[1] =	cell->next_avail[1];
-	}
+		head->avail_cell[1] =	cell->next_avail[1]; }
 
 	cell->is_used = true;
 	head->num_cells++;
 
 	return(cell);
 }
+
 
 void prealloc_del(prealloc_head *head, prealloc_cell *cell) {
 
@@ -109,11 +108,11 @@ void prealloc_del(prealloc_head *head, prealloc_cell *cell) {
 }
 
 
-
 void *prealloc_memget(prealloc_cell *cell) {
 
 	return(cell->data);
 }
+
 
 int prealloc_realloc(prealloc_head *head) {
 
@@ -122,6 +121,7 @@ int prealloc_realloc(prealloc_head *head) {
 	if (head->max_cells < head->alloc_cells + head->init_cells)
 		return(-1);
 
+	printf("realloc\n");
 
 	prealloc_cell *cell = {0};
 
@@ -131,20 +131,19 @@ int prealloc_realloc(prealloc_head *head) {
 	head->inv[head->full_next[1]] =
 		(prealloc_cell *)calloc(head->init_cells, sizeof(prealloc_cell));
 	if (head->inv[head->full_next[1]] == NULL) {
-		perror("prealloc");
-		exit(EXIT_FAILURE);
-	}
+		perror("prealloc, calloc");
+		exit(EXIT_FAILURE);	}
+
 	head->data[head->full_next[1]] =
-		(int *)calloc(head->init_cells, head->cell_size);
+		(void *)calloc(head->init_cells, head->cell_size);
+
 	if (head->data[head->full_next[1]] == NULL) {
-		perror("prealloc");
-		exit(EXIT_FAILURE);
-	}
+		perror("prealloc, calloc");
+		exit(EXIT_FAILURE);	}
 
 	for (unsigned int i=0;i<head->init_cells;i++) {
 		cell = &(head->inv[head->full_next[1]][i]);
-		cell->data = &((cell_data **)head->data)[head->full_next[1]][i];
-	}
+		cell->data = &((cell_data **)head->data)[head->full_next[1]][i]; }
 
 	head->alloc_cells = head->alloc_cells + head->init_cells;
 	return(0);
@@ -153,16 +152,58 @@ int prealloc_realloc(prealloc_head *head) {
 
 void prealloc_destroy(prealloc_head *head) {
 
+	unsigned int i;
 
-	for (unsigned int i=0; i <= head->full_next[1]; i++) {
+	for (i=0; i <= head->full_next[1]; i++) {
 		free(head->inv[i]);
-		free(head->data[i]);
-	}
+		free(head->data[i]); }
 
 	free(head->inv);
 	free(head->data);
 	free(head);
 }
 
+/*
+void *alloc_memsh(unsigned int num_cells_x, size_t cell_data, unsigned int id) {
+
+	void *data;
+	key_t shm_key;
+	int shm_id;
 
 
+	char self_path[14] = "/proc/self/exe";    // Linux specific
+	const size_t buf_size = PATH_MAX + 1;
+	char buf_name[buf_size];
+	memset(&buf_name,0,sizeof(buf_name));
+	readlink(self_path, buf_name, PATH_MAX);
+	char elf_name[strlen(buf_name)];
+	strncpy(elf_name, buf_name, sizeof(elf_name));
+	elf_name[sizeof(elf_name)] = 0;
+
+	//  // Generate child ID
+	//  srand(time(NULL));
+	//  id = rand();
+	//  while( hashtable_lookup(chld_hash, &id) != NULL ) {
+	//    srand(time(NULL));
+	//    id = rand(); }
+	//
+	//printf("child-ID: %u\n",id);
+
+
+	// Allocate child within shared memory
+	if ( (shm_key = ftok(elf_name, id)) == -1 ) {
+		perror("prealloc, ftok");
+		exit(EXIT_FAILURE); }
+	if ( (shm_id = shmget(shm_key, num_cells_x * cell_data,
+					IPC_CREAT | 0660 )) == -1 ) {
+		perror("prealloc, shmget");
+		exit(EXIT_FAILURE); }
+	if ( (data = shmat(shm_id, NULL, 0)) == (void *)(-1) ) {
+		perror("prealloc, shmat");
+		exit(EXIT_FAILURE); }
+
+	printf("file:\t%s\nkey:\t%u\nid:\t%d\ndata:\t%p\n",elf_name, (unsigned int)shm_key, shm_id, data);
+
+	return(data);
+}
+*/

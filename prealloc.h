@@ -4,7 +4,10 @@
 #include <stdbool.h>
 #include <sys/types.h>
 
-typedef struct Alloc_Cell {
+#define PREALLOC_MEMSH 1
+
+
+typedef struct Prealloc_Cell {
 	unsigned int place[2];
 	unsigned int next_avail[2];
 	bool is_used;
@@ -12,7 +15,7 @@ typedef struct Alloc_Cell {
 } prealloc_cell;
 
 
-typedef struct Alloc_Head {
+typedef struct Prealloc_Head {
 	prealloc_cell **inv;
 	void **data;
 	unsigned int full_next[2];
