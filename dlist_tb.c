@@ -12,18 +12,16 @@
 void print_menu();
 
 #ifdef DLIST_DEBUG
-void dlist_debug(dlist_list *list);
+void intern_listPrealloc(dlist_list *list);
 #endif
 
 int main() {
-
 	bool loop = true;
 	char c;
 	char s[STRING_LEN];
 	int i, j;
-	dlist_list *l = dlist_init(4U, 12U, sizeof(s));
+	dlist_list *l = dlist_init(4U, 8U, sizeof(s));
 	dlist_link *p = NULL;
-
 
 	print_menu();
 	while(loop == true) {
@@ -36,9 +34,9 @@ int main() {
 				printf("Insert: ");
 				pgets(s, sizeof(char)*STRING_LEN);
 				printf("\n");
-				if ( dlist_ins(l, s) == NULL ) {
+				if ( dlist_ins(l, s) == NULL )
 					fprintf(stderr,"Could not insert into dlist\n");
-					exit(EXIT_FAILURE);	}
+				memset(s,0,sizeof(s));
 				break;
 
 				/* Remove */
@@ -61,16 +59,31 @@ int main() {
 				printf("\n");
 				i=1;
 				for (p=dlist_top(l);!dlist_end(p);p=dlist_next(p)) {
-					printf("%d: %s\n",i,(char *)dlist_get(p));
+					printf("%d: %s\t id: %u\n",i,(char *)dlist_get(p), dlist_getId(p));
 					i++;
 				}
 #ifdef DLIST_DEBUG
-				dlist_debug(l);
+				intern_listPrealloc(l);
 #endif
 				break;
 
-				/* Move to front */
+				/* Lookup */
 			case '4' :
+				printf("Lookup ID: ");
+				while (pgetd(&i) != 0 || i <= 0)
+					printf("INVALID INPUT: Please try again\n");
+				printf("\n");
+				if (memcpy(s,dlist_lookup(l, i),sizeof(s)) == NULL) {
+					printf("Could not find item!\n");
+					break;
+				}
+
+				printf("%s\n",s);
+				memset(s,0,sizeof(s));
+				break;
+
+				/* Move to front */
+			case '5' :
 				printf("Move to front: ");
 				while (pgetd(&j) != 0 || j <= 0)
 					printf("INVALID INPUT: Please try again\n");
@@ -83,6 +96,27 @@ int main() {
 					dlist_mtf(l,p);
 
 				break;
+
+				/* Index the list */
+			case '6' :
+				dlist_index(l);
+				break;
+
+				/* Show if list is indexed */
+			case '7' :
+				if ( dlist_isIndexed(l) == 1 )
+					printf("List is indexed\n");
+				else
+					printf("List is not indexed\n");
+				break;
+
+
+
+
+
+
+
+
 
 				/* Quit */
 			case '0' :
@@ -101,21 +135,22 @@ int main() {
 
 
 #ifdef DLIST_DEBUG
-void dlist_debug(dlist_list *list) {
-  prealloc_cell p_cell;
-  unsigned int i,x,y;
+void intern_listPrealloc(dlist_list *list) {
+	prealloc_cell p_cell;
+	unsigned int i,x,y;
 
-  printf("\nnum_cells: %d\n",list->p_head->num_cells);
-  printf("avail: [%d %d]\n",
-      list->p_head->avail_cell[1],list->p_head->avail_cell[0]);
-  for (i=0;i<list->p_head->alloc_cells;i++) {
-    x = i % list->p_head->init_cells;
-    y = i / list->p_head->init_cells;
-    p_cell = list->p_head->inv[y][x];
-    printf("[%d %d]: %s\t", y, x, (char *)((dlist_link *)p_cell.data)->data);
-		printf("avail_next: [%d %d]\t",p_cell.next_avail[1],p_cell.next_avail[0]);
-		printf("addr: %p\n",((dlist_link *)p_cell.data)->data);
-  }
+	printf("\nnum_cells: %u\n",dlist_links(list));
+	printf("avail: [%d %d]\n",
+			list->p_head_list->avail_cell[1],list->p_head_list->avail_cell[0]);
+	for (i=0;i<list->p_head_list->alloc_cells;i++) {
+		x = i % list->p_head_list->init_cells;
+		y = i / list->p_head_list->init_cells;
+		p_cell = list->p_head_list->inv[y][x];
+		printf("[%d %d]: %s\t", y, x, (char *)((dlist_link *)p_cell.data)->data);
+		printf("avail_next: [%d %d]   ",p_cell.next_avail[1],p_cell.next_avail[0]);
+		printf("link addr: %p   ",(dlist_link *)p_cell.data);
+		printf("string addr: %p\n",((dlist_link *)p_cell.data)->data);
+	}
 }
 #endif
 
@@ -125,6 +160,9 @@ void print_menu() {
 	printf("1: Insert\n");
 	printf("2: Remove\n");
 	printf("3: List\n");
-	printf("4: Move to front\n");
+	printf("4: Lookup\n");
+	printf("5: Move to front\n");
+	printf("6: Index the list\n");
+	printf("7: Test if list is indexed\n");
 	printf("0: Quit\n");
 }

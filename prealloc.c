@@ -13,7 +13,6 @@
 
 prealloc_head *prealloc_init(unsigned int init_cells,
 		unsigned int max_cells, size_t cell_size){
-
 	typedef char cell_data[cell_size];
 
 	prealloc_head *head = (prealloc_head *)calloc(1,sizeof(prealloc_head));
@@ -64,13 +63,11 @@ prealloc_head *prealloc_init(unsigned int init_cells,
 	head->alloc_cells = num_cells_x;
 	head->max_cells = max_cells;
 	head->cell_size = cell_size;
-
 	return(head);
 }
 
 
 prealloc_cell *prealloc_new(prealloc_head *head) {
-
 	prealloc_cell *cell;
 
 	if ( head->avail_cell[0] == -1U) {
@@ -91,7 +88,6 @@ prealloc_cell *prealloc_new(prealloc_head *head) {
 
 	cell->is_used = true;
 	head->num_cells++;
-
 	return(cell);
 }
 
@@ -109,7 +105,6 @@ void prealloc_del(prealloc_head *head, prealloc_cell *cell) {
 
 
 void *prealloc_memget(prealloc_cell *cell) {
-
 	return(cell->data);
 }
 
@@ -120,8 +115,6 @@ int prealloc_realloc(prealloc_head *head) {
 
 	if (head->max_cells < head->alloc_cells + head->init_cells)
 		return(-1);
-
-	printf("realloc\n");
 
 	prealloc_cell *cell = {0};
 
@@ -163,47 +156,3 @@ void prealloc_destroy(prealloc_head *head) {
 	free(head);
 }
 
-/*
-void *alloc_memsh(unsigned int num_cells_x, size_t cell_data, unsigned int id) {
-
-	void *data;
-	key_t shm_key;
-	int shm_id;
-
-
-	char self_path[14] = "/proc/self/exe";    // Linux specific
-	const size_t buf_size = PATH_MAX + 1;
-	char buf_name[buf_size];
-	memset(&buf_name,0,sizeof(buf_name));
-	readlink(self_path, buf_name, PATH_MAX);
-	char elf_name[strlen(buf_name)];
-	strncpy(elf_name, buf_name, sizeof(elf_name));
-	elf_name[sizeof(elf_name)] = 0;
-
-	//  // Generate child ID
-	//  srand(time(NULL));
-	//  id = rand();
-	//  while( hashtable_lookup(chld_hash, &id) != NULL ) {
-	//    srand(time(NULL));
-	//    id = rand(); }
-	//
-	//printf("child-ID: %u\n",id);
-
-
-	// Allocate child within shared memory
-	if ( (shm_key = ftok(elf_name, id)) == -1 ) {
-		perror("prealloc, ftok");
-		exit(EXIT_FAILURE); }
-	if ( (shm_id = shmget(shm_key, num_cells_x * cell_data,
-					IPC_CREAT | 0660 )) == -1 ) {
-		perror("prealloc, shmget");
-		exit(EXIT_FAILURE); }
-	if ( (data = shmat(shm_id, NULL, 0)) == (void *)(-1) ) {
-		perror("prealloc, shmat");
-		exit(EXIT_FAILURE); }
-
-	printf("file:\t%s\nkey:\t%u\nid:\t%d\ndata:\t%p\n",elf_name, (unsigned int)shm_key, shm_id, data);
-
-	return(data);
-}
-*/
