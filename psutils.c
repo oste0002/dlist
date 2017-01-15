@@ -1,15 +1,9 @@
-
 #include <stdio.h>
 #include <string.h>
 #include <stdbool.h>
 #include <limits.h>
-#include <stdarg.h>
-#include <stdlib.h>
-#include <unistd.h>
 
 #include "psutils.h"
-
-
 
 
 ssize_t pgets(char *str, ssize_t siz) {
@@ -77,9 +71,7 @@ int pgetd(int *d) {
 	for (i=neg;i<20;i++) {
 		if ( (str[i] < '0') || (str[i] > '9') || (flush == true) ) {
 			flush = true;
-			str[i] = '\0';
-		}
-	}
+			str[i] = '\0'; } }
 
 	// return(1) if statement gives an overflow
 	sprintf(int_max,"%d",INT_MAX);
@@ -91,9 +83,7 @@ int pgetd(int *d) {
 			else if (str[i+neg] == int_max[i])
 				continue;
 			else
-				break;
-		}
-	}
+				break; } }
 
 	// return(2) if first input character is invalid
 	if (str[0] == '\0')
@@ -106,32 +96,4 @@ int pgetd(int *d) {
 	sscanf(str, "%d", d);
 
 	return(0);
-}
-
-
-void vaclose(const unsigned int argc, ...) {
-	va_list va;
-	unsigned int i;
-
-	va_start(va,argc);
-	for (i=0;i<argc;i++) {
-		close(va_arg(va,int));
-	}
-	va_end(va);
-
-	return;
-}
-
-
-void vafree(const unsigned int argc, ...) {
-	va_list va;
-	unsigned int i;
-
-	va_start(va,argc);
-	for (i=0;i<argc;i++) {
-		free(va_arg(va,void *));
-	}
-	va_end(va);
-
-	return;
 }

@@ -191,15 +191,15 @@ static int32_t intern_newHash(dlist_list *list, dlist_link *link) {
 	id = rand();
 	if ( (i = intern_availHash(list, &id, &index)) == -1 )
 		return(-1);
-#ifdef DLIST_DEBUG
-	printf("Hash iterations: %u\n", i);
-#endif
 
 	hash = &list->hash_pool[index];
 	hash->id = id;
 	hash->ptr = link;
 	link->id = &hash->id;
+#ifdef DLIST_DEBUG
+	printf("Hash iterations: %u\n", i);
 	printf("id: %u\tindex: %u\n", *link->id, index);
+#endif
 	return(i);
 }
 
