@@ -135,7 +135,7 @@ int dlist_isIndexed(dlist_list *list) {
 
 
 void dlist_index(dlist_list *list){
-	dlist_link *pos;
+	dlist_link *link;
 
 	if (list->hash_is_active == false)
 		list->hash_pool = (dlist_hash *)calloc(list->hash_links,
@@ -143,8 +143,8 @@ void dlist_index(dlist_list *list){
 	else
 		memset(list->hash_pool, 0, list->hash_links * sizeof(dlist_hash));
 
-	for (pos=dlist_top(list);!dlist_end(pos);pos=dlist_next(pos))
-		if ( intern_newHash(list, pos->next) == 0 )
+	for (link=dlist_top(list);!dlist_end(link);link=dlist_next(link))
+		if ( intern_newHash(list, link->next) == 0 )
 			fprintf(stderr,"Error: Hash table is full!\n");
 
 	list->hash_is_active = true;
@@ -153,10 +153,16 @@ void dlist_index(dlist_list *list){
 
 
 void dlist_dropIndex(dlist_list *list){
+	dlist_link *link;
 
 	if (list->hash_is_active == true) {
 		free(list->hash_pool);
 		list->hash_is_active = false; }
+
+	for (link=dlist_top(list);!dlist_end(link);link=dlist_next(link))
+		link->next->id = NULL;
+
+	list->hash_is_active = false;
 	return;
 }
 

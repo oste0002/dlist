@@ -117,6 +117,10 @@ int main() {
 					printf("List is not indexed\n");
 				break;
 
+				/* Remove indexation */
+			case '8' :
+				dlist_dropIndex(l);
+				break;
 
 
 
@@ -171,5 +175,6 @@ void print_menu() {
 	printf("5: Move to front\n");
 	printf("6: Index the list\n");
 	printf("7: Test if list is indexed\n");
+	printf("8: Remove indexation\n");
 	printf("0: Quit\n");
 }
