@@ -13,11 +13,11 @@
 #define NEW_HASH_MAX_ITERATIONS 1000
 
 /* INTERNAL FUNCTION DEFINITIONS */
-static int32_t intern_newHash(dlist_list *list, dlist_link *link);
-static int32_t intern_delHash(dlist_list *list, hash_id *id);
-static int32_t intern_hashExists(const dlist_list *list,
+static int32_t intern_new_hash(dlist_list *list, dlist_link *link);
+static int32_t intern_del_hash(dlist_list *list, hash_id *id);
+static int32_t intern_hash_exists(const dlist_list *list,
 		const hash_id id, uint32_t *index);
-static int32_t intern_availHash(const dlist_list *list, hash_id *id,
+static int32_t intern_avail_hash(const dlist_list *list, hash_id *id,
 		uint32_t *index);
 
 
@@ -52,13 +52,16 @@ dlist_link *dlist_ins(dlist_list *list, void *data) {
 	link->data = &carrier->data;
 	link->p_cell = p_cell;
 	link->next = list->top.next;
+	if (link->next != NULL)
+		link->next->prev = link;
+	link->prev = &list->top;
 	memcpy(link->data,data,list->data_size);
+	list->top.next = link;
 
 	if ( list->hash_is_active == true )
-		if (intern_newHash(list, link) == 0 )
+		if (intern_new_hash(list, link) == 0 )
 			fprintf(stderr,"Error: Hash table is full!\n");
 
-	list->top.next = link;
 	return(link);
 }
 
@@ -66,31 +69,42 @@ dlist_link *dlist_ins(dlist_list *list, void *data) {
 void dlist_del(dlist_list *list, dlist_link *link) {
 
 	if ( list->hash_is_active == true ) {
-		intern_delHash(list, link->next->id);
+		intern_del_hash(list, link->next->id);
 		link->next->id = NULL; }
 
 	prealloc_del(list->p_head_list, link->next->p_cell);
 	link->next = link->next->next;
+	if (link->next != NULL)
+		link->next->prev = link;
 	return;
 }
 
 
-dlist_link *dlist_mtf(dlist_list *list, dlist_link *pos_link) {
-	dlist_link *link = pos_link->next;
+dlist_link *dlist_mtf(dlist_list *list, dlist_link *link) {
+	dlist_link *link2 = link->next;
 
-	pos_link->next = pos_link->next->next;
-	link->next = list->top.next;
-	list->top.next = link;
-	return(link);
+	if (link->next->next != NULL)
+		link->next->next->prev = link;
+	link->next = link->next->next;
+
+
+	link2->next = list->top.next;
+	if (link2->next != NULL)
+		link2->next->prev = link2;
+
+	link2->prev = &list->top;
+	list->top.next = link2;
+
+	return(link2);
 }
 
 
-void *dlist_get(dlist_link *pos_link) {
-	return pos_link->next->data;
+void *dlist_get(dlist_link *link) {
+	return(((link != NULL) && (link->next != NULL)) ? link->next->data : NULL);
 }
 
 
-uint32_t dlist_getId(dlist_link *link) {
+uint32_t dlist_get_id(dlist_link *link) {
 	return(link->next->id != NULL ? *link->next->id : 0);
 }
 
@@ -100,8 +114,18 @@ dlist_link *dlist_next(dlist_link *link) {
 }
 
 
+dlist_link *dlist_prev(dlist_link *link) {
+	return(link != NULL ? link->prev : NULL);
+}
+
+
+dlist_link *dlist_circ(dlist_list *list, dlist_link *link) {
+	return(link != NULL ? link->next : &list->top);
+}
+
+
 uint32_t dlist_links(dlist_list *list) {
-	return list->p_head_list->num_cells;
+	return(list->p_head_list->num_cells);
 }
 
 
@@ -115,26 +139,26 @@ void dlist_destroy(dlist_list *list) {
 
 
 dlist_link *dlist_top(dlist_list *list) {
-	return &list->top;
+	return(&list->top);
 }
 
 
-int dlist_end(dlist_link *pos_link) {
-	return(pos_link->next== NULL);
+int dlist_end(dlist_link *link) {
+	return(link->next== NULL);
 }
 
 
-int dlist_exist(dlist_link *pos_link) {
-	return(pos_link != NULL);
+int dlist_exist(dlist_link *link) {
+	return(link != NULL);
 }
 
 
-int dlist_isIndexed(dlist_list *list) {
+int dlist_is_indexed(dlist_list *list) {
 	return(list->hash_is_active == true ? 1 : 0);
 }
 
 
-void dlist_index(dlist_list *list){
+void dlist_index(dlist_list *list) {
 	dlist_link *link;
 
 	if (list->hash_is_active == false)
@@ -144,7 +168,7 @@ void dlist_index(dlist_list *list){
 		memset(list->hash_pool, 0, list->hash_links * sizeof(dlist_hash));
 
 	for (link=dlist_top(list);!dlist_end(link);link=dlist_next(link))
-		if ( intern_newHash(list, link->next) == 0 )
+		if ( intern_new_hash(list, link->next) == 0 )
 			fprintf(stderr,"Error: Hash table is full!\n");
 
 	list->hash_is_active = true;
@@ -152,7 +176,7 @@ void dlist_index(dlist_list *list){
 }
 
 
-void dlist_dropIndex(dlist_list *list){
+void dlist_drop_index(dlist_list *list) {
 	dlist_link *link;
 
 	if (list->hash_is_active == true) {
@@ -167,14 +191,14 @@ void dlist_dropIndex(dlist_list *list){
 }
 
 
-void *dlist_lookup(dlist_list *list, hash_id id) {
+dlist_link *dlist_lookup(dlist_list *list, hash_id id) {
 	uint32_t index;
 
 	if (list->hash_is_active != true)
 		return(NULL);
 
-	intern_hashExists(list, id, &index);
-	return(index != 0U ? list->hash_pool[index].ptr->data : NULL);
+	intern_hash_exists(list, id, &index);
+	return(index != 0U ? list->hash_pool[index].ptr->prev : NULL);
 }
 
 
@@ -182,10 +206,10 @@ void *dlist_lookup(dlist_list *list, hash_id id) {
 /* INTERNAL FUNCTIONS */
 
 
-/* intern_newHash
+/* intern_new_hash
  * Initializes hash for the dlist_link that 'link' points at.
  */
-static int32_t intern_newHash(dlist_list *list, dlist_link *link) {
+static int32_t intern_new_hash(dlist_list *list, dlist_link *link) {
 	dlist_hash *hash;
 	hash_id id = 0;
 	struct timeval tim;
@@ -195,7 +219,7 @@ static int32_t intern_newHash(dlist_list *list, dlist_link *link) {
 	gettimeofday(&tim, NULL);
 	srand(tim.tv_usec | tim.tv_sec);
 	id = rand();
-	if ( (i = intern_availHash(list, &id, &index)) == -1 )
+	if ( (i = intern_avail_hash(list, &id, &index)) == -1 )
 		return(-1);
 
 	hash = &list->hash_pool[index];
@@ -210,10 +234,10 @@ static int32_t intern_newHash(dlist_list *list, dlist_link *link) {
 }
 
 
-static int32_t intern_delHash(dlist_list *list, hash_id *id) {
+static int32_t intern_del_hash(dlist_list *list, hash_id *id) {
 	uint32_t index;
 
-	if ( intern_hashExists(list, *id, &index) == 0 )
+	if ( intern_hash_exists(list, *id, &index) == 0 )
 		return(1);
 	list->hash_pool[index].ptr = NULL;
 	list->hash_pool[index].id = 0;
@@ -221,12 +245,12 @@ static int32_t intern_delHash(dlist_list *list, hash_id *id) {
 }
 
 
-/* intern_hashExists
+/* intern_hash_exists
  *
  * Return:	0		- Hash does not exist
  *					1		- Hash exists
  */
-static int32_t intern_hashExists(const dlist_list *list, const hash_id id,
+static int32_t intern_hash_exists(const dlist_list *list, const hash_id id,
 		uint32_t *index) {
 
 	*index = id % list->hash_links;
@@ -238,14 +262,14 @@ static int32_t intern_hashExists(const dlist_list *list, const hash_id id,
 }
 
 
-/* intern_availHash
+/* intern_avail_hash
  * Finds a id and corresponding hash index, runs at most
  * NEW_HASH_MAX_ITERATIONS times.
  *
  * Return:	0		- Hash does not exist
  *					i		- Number of iteratins performed in order to find available hash
  */
-static int32_t intern_availHash(const dlist_list *list, hash_id *id,
+static int32_t intern_avail_hash(const dlist_list *list, hash_id *id,
 		uint32_t *index) {
 	uint32_t i;
 

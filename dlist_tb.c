@@ -19,7 +19,6 @@ int main() {
 	bool loop = true;
 	char c;
 	char s[STRING_LEN];
-	char *s_ptr;
 	int i, j;
 	dlist_list *l = dlist_init(4U, 8U, sizeof(s));
 	dlist_link *p = NULL;
@@ -62,9 +61,9 @@ int main() {
 				for (p=dlist_top(l);!dlist_end(p);p=dlist_next(p)) {
 					strncpy(s,(char *)dlist_get(p),sizeof(s));
 					if (strnlen(s,sizeof(s))<5)
-						printf("%d: %s\t\t id: %u\n",i,(char *)dlist_get(p), dlist_getId(p));
+						printf("%d: %s\t\t id: %u\n",i,(char *)dlist_get(p), dlist_get_id(p));
 					else
-						printf("%d: %s\t id: %u\n",i,(char *)dlist_get(p), dlist_getId(p));
+						printf("%d: %s\t id: %u\n",i,(char *)dlist_get(p), dlist_get_id(p));
 					i++;
 				}
 #ifdef DLIST_DEBUG
@@ -79,11 +78,11 @@ int main() {
 					printf("INVALID INPUT: Please try again\n");
 				printf("\n");
 				//if (memcpy(s,dlist_lookup(l, i),sizeof(s)) == NULL) {
-				if ( (s_ptr = (char *)dlist_lookup(l, i)) == NULL ) {
+				if ( (p = dlist_lookup(l, i)) == NULL ) {
 					printf("Could not find item!\n");
 					break; }
 
-				memcpy(s,s_ptr,sizeof(s));
+				memcpy(s,dlist_get(p),sizeof(s));
 
 				printf("%s\n",s);
 				memset(s,0,sizeof(s));
@@ -111,7 +110,7 @@ int main() {
 
 				/* Show if list is indexed */
 			case '7' :
-				if ( dlist_isIndexed(l) == 1 )
+				if ( dlist_is_indexed(l) == 1 )
 					printf("List is indexed\n");
 				else
 					printf("List is not indexed\n");
@@ -119,7 +118,7 @@ int main() {
 
 				/* Remove indexation */
 			case '8' :
-				dlist_dropIndex(l);
+				dlist_drop_index(l);
 				break;
 
 
