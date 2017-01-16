@@ -47,10 +47,10 @@ int main() {
 				printf("Removing %d\n",j);
 
 				for (p=dlist_top(l),i=1;
-						(!dlist_end(p) && (j>i));
+						(dlist_exist(p) && (j>i));
 						p=dlist_next(p),i++);
 
-				if (!dlist_end(p))
+				if (dlist_exist(p))
 					dlist_del(l,p);
 				break;
 
@@ -58,7 +58,7 @@ int main() {
 			case '3' :
 				printf("\n");
 				i=1;
-				for (p=dlist_top(l);!dlist_end(p);p=dlist_next(p)) {
+				for (p=dlist_top(l);dlist_exist(p);p=dlist_next(p)) {
 					strncpy(s,(char *)dlist_get(p),sizeof(s));
 					if (strnlen(s,sizeof(s))<5)
 						printf("%d: %s\t\t id: %u\n",i,(char *)dlist_get(p), dlist_get_id(p));
@@ -66,6 +66,8 @@ int main() {
 						printf("%d: %s\t id: %u\n",i,(char *)dlist_get(p), dlist_get_id(p));
 					i++;
 				}
+
+				p = dlist_top(l); // Reset p for other functions
 #ifdef DLIST_DEBUG
 				intern_listPrealloc(l);
 #endif
@@ -95,10 +97,10 @@ int main() {
 					printf("INVALID INPUT: Please try again\n");
 
 				for (p=dlist_top(l),i=1;
-						(j>i) && (!dlist_end(p));
+						(j>i) && (dlist_exist(p));
 						p=dlist_next(p),i++);
 
-				if (!dlist_end(p))
+				if (dlist_exist(p))
 					dlist_mtf(l,p);
 
 				break;
@@ -108,19 +110,31 @@ int main() {
 				dlist_index(l);
 				break;
 
-				/* Show if list is indexed */
+				/* Remove indexation */
 			case '7' :
+				dlist_drop_index(l);
+				break;
+
+				/* Show if list is indexed */
+			case '8' :
 				if ( dlist_is_indexed(l) == 1 )
 					printf("List is indexed\n");
 				else
 					printf("List is not indexed\n");
 				break;
 
-				/* Remove indexation */
-			case '8' :
-				dlist_drop_index(l);
-				break;
+				/* Next in ring buffer */
+			case '9' :
+				if (!dlist_exist(p))
+					p = dlist_top(l);
+				strncpy(s,(char *)dlist_get(p),sizeof(s));
+				if (strnlen(s,sizeof(s))<5)
+					printf("%s\t\t id: %u\n",(char *)dlist_get(p), dlist_get_id(p));
+				else
+					printf("%s\t id: %u\n",(char *)dlist_get(p), dlist_get_id(p));
 
+				p = dlist_circ(l,p);
+				break;
 
 
 
@@ -138,42 +152,43 @@ int main() {
 		}
 
 
+		}
+		dlist_destroy(l);
+		exit(EXIT_SUCCESS);
 	}
-	dlist_destroy(l);
-	exit(EXIT_SUCCESS);
-}
 
 
 #ifdef DLIST_DEBUG
-void intern_listPrealloc(dlist_list *list) {
-	prealloc_cell p_cell;
-	unsigned int i,x,y;
+	void intern_listPrealloc(dlist_list *list) {
+		prealloc_cell p_cell;
+		unsigned int i,x,y;
 
-	printf("\nnum_cells: %u\n",dlist_links(list));
-	printf("avail: [%d %d]\n",
-			list->p_head_list->avail_cell[1],list->p_head_list->avail_cell[0]);
-	for (i=0;i<list->p_head_list->alloc_cells;i++) {
-		x = i % list->p_head_list->init_cells;
-		y = i / list->p_head_list->init_cells;
-		p_cell = list->p_head_list->inv[y][x];
-		printf("[%d %d]: %s\t", y, x, (char *)((dlist_link *)p_cell.data)->data);
-		printf("avail_next: [%d %d]   ",p_cell.next_avail[1],p_cell.next_avail[0]);
-		printf("link addr: %p   ",(dlist_link *)p_cell.data);
-		printf("string addr: %p\n",((dlist_link *)p_cell.data)->data);
+		printf("\nnum_cells: %u\n",dlist_links(list));
+		printf("avail: [%d %d]\n",
+				list->p_head_list->avail_cell[1],list->p_head_list->avail_cell[0]);
+		for (i=0;i<list->p_head_list->alloc_cells;i++) {
+			x = i % list->p_head_list->init_cells;
+			y = i / list->p_head_list->init_cells;
+			p_cell = list->p_head_list->inv[y][x];
+			printf("[%d %d]: %s\t", y, x, (char *)((dlist_link *)p_cell.data)->data);
+			printf("avail_next: [%d %d]   ",p_cell.next_avail[1],p_cell.next_avail[0]);
+			printf("link addr: %p   ",(dlist_link *)p_cell.data);
+			printf("string addr: %p\n",((dlist_link *)p_cell.data)->data);
+		}
 	}
-}
 #endif
 
 
-void print_menu() {
-	printf("\n");
-	printf("1: Insert\n");
-	printf("2: Remove\n");
-	printf("3: List\n");
-	printf("4: Lookup\n");
-	printf("5: Move to front\n");
-	printf("6: Index the list\n");
-	printf("7: Test if list is indexed\n");
-	printf("8: Remove indexation\n");
-	printf("0: Quit\n");
-}
+	void print_menu() {
+		printf("\n");
+		printf("1: Insert\n");
+		printf("2: Remove\n");
+		printf("3: List\n");
+		printf("4: Lookup\n");
+		printf("5: Move to front\n");
+		printf("6: Index the list\n");
+		printf("7: Remove indexation\n");
+		printf("8: Test if list is indexed\n");
+		printf("9: Next in ring buffer\n");
+		printf("0: Quit\n");
+	}

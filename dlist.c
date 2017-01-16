@@ -28,7 +28,7 @@ dlist_list *dlist_init(uint32_t init_links,
 
 	dlist_list *list = (dlist_list *)calloc(1,sizeof(dlist_list));
 	list->p_head_list = prealloc_init(init_links, max_links, carrier_size);
-	list->top.next = NULL;
+	list->top = NULL;
 	list->init_links = init_links;
 	list->max_links = max_links;
 	list->hash_links = max_links*2;
@@ -51,12 +51,12 @@ dlist_link *dlist_ins(dlist_list *list, void *data) {
 	link = &carrier->link;
 	link->data = &carrier->data;
 	link->p_cell = p_cell;
-	link->next = list->top.next;
+	link->next = list->top;
 	if (link->next != NULL)
 		link->next->prev = link;
-	link->prev = &list->top;
+	link->prev = NULL;
 	memcpy(link->data,data,list->data_size);
-	list->top.next = link;
+	list->top = link;
 
 	if ( list->hash_is_active == true )
 		if (intern_new_hash(list, link) == 0 )
@@ -69,58 +69,65 @@ dlist_link *dlist_ins(dlist_list *list, void *data) {
 void dlist_del(dlist_list *list, dlist_link *link) {
 
 	if ( list->hash_is_active == true ) {
-		intern_del_hash(list, link->next->id);
-		link->next->id = NULL; }
+		intern_del_hash(list, link->id);
+		link->id = NULL; }
 
-	prealloc_del(list->p_head_list, link->next->p_cell);
-	link->next = link->next->next;
+	if (link->prev != NULL)
+		link->prev->next = link->next;
 	if (link->next != NULL)
-		link->next->prev = link;
+		link->next->prev = link->prev;
+
+	if (link->prev == NULL)
+		list->top = link->next;
+
+	prealloc_del(list->p_head_list, link->p_cell);
 	return;
 }
 
 
 dlist_link *dlist_mtf(dlist_list *list, dlist_link *link) {
-	dlist_link *link2 = link->next;
 
-	if (link->next->next != NULL)
-		link->next->next->prev = link;
-	link->next = link->next->next;
+	if (link->prev == NULL)
+		return(link);
 
+	if (link->next != NULL)
+		link->next->prev = link->prev;
+	if (link->prev != NULL)
+		link->prev->next = link->next;
 
-	link2->next = list->top.next;
-	if (link2->next != NULL)
-		link2->next->prev = link2;
+	link->next = list->top;
+	if (link->next != NULL)
+		link->next->prev = link;
 
-	link2->prev = &list->top;
-	list->top.next = link2;
+	link->prev = NULL;
+	list->top = link;
 
-	return(link2);
+	return(link);
 }
 
 
 void *dlist_get(dlist_link *link) {
-	return(((link != NULL) && (link->next != NULL)) ? link->next->data : NULL);
+	return(link->data);
 }
 
 
 uint32_t dlist_get_id(dlist_link *link) {
-	return(link->next->id != NULL ? *link->next->id : 0);
+	return(link->id != NULL ? *link->id : 0);
 }
 
 
 dlist_link *dlist_next(dlist_link *link) {
-	return(link != NULL ? link->next : NULL);
+	return(link->next);
 }
 
 
 dlist_link *dlist_prev(dlist_link *link) {
-	return(link != NULL ? link->prev : NULL);
+	return(link->prev);
 }
 
 
 dlist_link *dlist_circ(dlist_list *list, dlist_link *link) {
-	return(link != NULL ? link->next : &list->top);
+	return(link->next != NULL ? link->next : list->top);
 }
 
 
@@ -139,12 +146,7 @@ void dlist_destroy(dlist_list *list) {
 
 
 dlist_link *dlist_top(dlist_list *list) {
-	return(&list->top);
-}
-
-
-int dlist_end(dlist_link *link) {
-	return(link->next== NULL);
+	return(list->top);
 }
 
 
@@ -167,8 +169,8 @@ void dlist_index(dlist_list *list) {
 	else
 		memset(list->hash_pool, 0, list->hash_links * sizeof(dlist_hash));
 
-	for (link=dlist_top(list);!dlist_end(link);link=dlist_next(link))
-		if ( intern_new_hash(list, link->next) == 0 )
+	for (link=dlist_top(list);dlist_exist(link);link=dlist_next(link))
+		if ( intern_new_hash(list, link) == 0 )
 			fprintf(stderr,"Error: Hash table is full!\n");
 
 	list->hash_is_active = true;
@@ -183,8 +185,8 @@ void dlist_drop_index(dlist_list *list) {
 		free(list->hash_pool);
 		list->hash_is_active = false; }
 
-	for (link=dlist_top(list);!dlist_end(link);link=dlist_next(link))
-		link->next->id = NULL;
+	for (link=dlist_top(list);dlist_exist(link);link=dlist_next(link))
+		link->id = NULL;
 
 	list->hash_is_active = false;
 	return;
@@ -198,7 +200,7 @@ dlist_link *dlist_lookup(dlist_list *list, hash_id id) {
 		return(NULL);
 
 	intern_hash_exists(list, id, &index);
-	return(index != 0U ? list->hash_pool[index].ptr->prev : NULL);
+	return(index != 0U ? list->hash_pool[index].ptr : NULL);
 }
 
 

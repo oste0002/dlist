@@ -34,7 +34,7 @@ struct Dlist_Hash {
 };
 
 struct Dlist_List{
-	dlist_link top;
+	dlist_link *top;
 	prealloc_head *p_head_list;
 	uint32_t init_links;
 	uint32_t max_links;
@@ -99,8 +99,6 @@ uint32_t dlist_links(dlist_list *list);
 void dlist_destroy(dlist_list *list);
 
 dlist_link *dlist_top(dlist_list *list);
-
-int dlist_end(dlist_link *link);
 
 int dlist_exist(dlist_link *link);
 
