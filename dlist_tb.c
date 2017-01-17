@@ -20,7 +20,7 @@ int main() {
 	char c;
 	char s[STRING_LEN];
 	int i, j;
-	dlist_list *l = dlist_init(4U, 8U, sizeof(s));
+	dlist_list *l = dlist_init(4U, 80U, sizeof(s));
 	dlist_link *p = NULL;
 
 	print_menu();
@@ -128,7 +128,7 @@ int main() {
 				if (!dlist_exist(p))
 					p = dlist_top(l);
 				strncpy(s,(char *)dlist_get(p),sizeof(s));
-				if (strnlen(s,sizeof(s))<5)
+				if (strnlen(s,sizeof(s))<8)
 					printf("%s\t\t id: %u\n",(char *)dlist_get(p), dlist_get_id(p));
 				else
 					printf("%s\t id: %u\n",(char *)dlist_get(p), dlist_get_id(p));

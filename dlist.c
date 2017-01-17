@@ -193,7 +193,7 @@ void dlist_drop_index(dlist_list *list) {
 }
 
 
-dlist_link *dlist_lookup(dlist_list *list, hash_id id) {
+dlist_link *dlist_lookup(dlist_list *list, uint32_t id) {
 	uint32_t index;
 
 	if (list->hash_is_active != true)
