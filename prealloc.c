@@ -99,6 +99,8 @@ void prealloc_del(prealloc_head *head, prealloc_cell *cell) {
 	head->avail_cell[0] = cell->place[0];
 	head->avail_cell[1] = cell->place[1];
 
+	memset(cell->data,0,head->cell_size);
+
 	cell->is_used = false;
 	head->num_cells--;
 }

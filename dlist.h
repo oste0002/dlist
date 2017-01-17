@@ -81,9 +81,9 @@ dlist_link *dlist_ins(dlist_list *list, const void *data);
  *  dlist_list *list        - A pointer to the list which hold the link that will
  *                          be deleted.
  *  dlist_link *link        - A pointer to the link that will be deleted. This
- *                          pointer may be collected from 'dlist_ins()',
- *                          'dlist_lookup()', 'dlist_next()', 'dlist_prev()' or
- *                          'dlist_circ()'.
+ *                          pointer may be collected from 'DLIST_INS',
+ *                          'DLIST_LOOKUP', 'DLIST_NEXT', 'DLIST_PREV' or
+ *                          'DLIST_CIRC'.
  */
 void dlist_del(dlist_list *list, dlist_link *link);
 
@@ -97,6 +97,13 @@ void dlist_del(dlist_list *list, dlist_link *link);
  */
 dlist_link *dlist_mtf(dlist_list *list, dlist_link *link);
 
+/* DLIST_DATA_SIZE - Size of data in each link
+ *
+ *  dlist_list *list    - A pointer to the list.
+ *
+ * Return:	The size of data as was defined in 'DLIST_INIT'.
+ */
+size_t dlist_data_size(const dlist_list *list);
 
 /* DLIST_GET - Get the value of a specific link
  *
@@ -151,7 +158,7 @@ dlist_link *dlist_next(const dlist_link *link);
 dlist_link *dlist_prev(const dlist_link *link);
 
 
-/* DLIST_CIRC - Same as 'DLIST_NEXT()' except that the first link is returned
+/* DLIST_CIRC - Same as 'DLIST_NEXT' except that the first link is returned
  * if the input link is the last link of the list.
  *
  *  dlist_list *list  - A pointer to the list which holds the link.
@@ -191,7 +198,7 @@ dlist_link *dlist_top(const dlist_list *list);
 
 
 /* DLIST_EXIST - Tests if a link exists or not. This function should only be
- * used directly on the return of 'DLIST_NEXT()' and 'DLIST_PREV()' functions.
+ * used directly on the return of 'DLIST_NEXT' and 'DLIST_PREV' functions.
  *
  *  dlist_link *link  - A pointer to the link which will be tested.
  *

@@ -106,6 +106,11 @@ dlist_link *dlist_mtf(dlist_list *list, dlist_link *link) {
 }
 
 
+size_t dlist_data_size(const dlist_list *list) {
+  return(list->data_size);
+}
+
+
 void *dlist_get(const dlist_link *link) {
   return(link->data);
 }
