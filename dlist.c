@@ -223,8 +223,7 @@ static int32_t intern_new_hash(dlist_list *list, dlist_link *link) {
   int i=0;
 
   gettimeofday(&tim, NULL);
-  srand(tim.tv_usec | tim.tv_sec);
-  id = rand();
+  id = (tim.tv_usec | tim.tv_sec);
   if ( (i = intern_avail_hash(list, &id, &index)) == -1 )
     return(-1);
 
