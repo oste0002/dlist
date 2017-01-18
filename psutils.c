@@ -2,6 +2,7 @@
 #include <string.h>
 #include <stdbool.h>
 #include <limits.h>
+#include <sys/types.h>
 
 #include "psutils.h"
 
