@@ -1,2 +1,6 @@
 *.swp
 dlist_tb
+
+psutils.c
+psutils.h
+dlist_tb.c
