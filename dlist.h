@@ -165,7 +165,8 @@ dlist_link *dlist_prev(const dlist_link *link);
  *  dlist_link *link  - A pointer to a link.
  *
  * Return:  The link pointer next of the input link. Or the first link pointer
- *          of 'list' if the input link is last in list.
+ *          of 'list' if the input link is last in list. Returns NULL if list
+ *          is empty.
  */
 dlist_link *dlist_circ(const dlist_list *list, const dlist_link *link);
 
